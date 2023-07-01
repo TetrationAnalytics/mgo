@@ -47,6 +47,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 )
 
 // --------------------------------------------------------------------------
@@ -116,10 +118,28 @@ type M map[string]interface{}
 // using a map is generally more comfortable. See bson.M and bson.RawD.
 type D []DocElem
 
+func (d D) MarshalBSON() ([]byte, error) {
+	data, err := Marshal(d)
+	return data, err
+}
+
+func (d *D) UnmarshalBSON(raw []byte) error {
+	return Unmarshal(raw, &d)
+}
+
 // DocElem is an element of the bson.D document representation.
 type DocElem struct {
 	Name  string
 	Value interface{}
+}
+
+func (de *DocElem) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	data, err := Marshal(de)
+	if err != nil {
+		return 0, nil, err
+	}
+
+	return bsontype.Array, data, nil
 }
 
 // Map returns a map out of the ordered element name/value pairs in d.
@@ -265,6 +285,19 @@ func (id ObjectId) Hex() string {
 // MarshalJSON turns a bson.ObjectId into a json.Marshaller.
 func (id ObjectId) MarshalJSON() ([]byte, error) {
 	return []byte(fmt.Sprintf(`"%x"`, string(id))), nil
+}
+
+func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	return bsontype.ObjectID, []byte(id), nil
+}
+
+func (id *ObjectId) UnmarshalBSONValue(t bsontype.Type, raw []byte) error {
+	s := hex.EncodeToString(raw[:])
+	if !IsObjectIdHex(s) {
+		return fmt.Errorf("invalid ObjectId: %s", raw)
+	}
+	*id = ObjectId(string(raw[:]))
+	return nil
 }
 
 var nullBytes = []byte("null")
