@@ -49,6 +49,7 @@ import (
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson/bsontype"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // --------------------------------------------------------------------------
@@ -280,6 +281,17 @@ func (id ObjectId) String() string {
 // Hex returns a hex representation of the ObjectId.
 func (id ObjectId) Hex() string {
 	return hex.EncodeToString([]byte(id))
+}
+
+// PrimitiveID is a helper method to convert the id into the new
+// primitive.ObjectID type.
+func (id ObjectId) PrimitiveID() primitive.ObjectID {
+	pid, err := primitive.ObjectIDFromHex(id.Hex())
+	if err != nil {
+		panic(err)
+	}
+
+	return pid
 }
 
 // MarshalJSON turns a bson.ObjectId into a json.Marshaller.
