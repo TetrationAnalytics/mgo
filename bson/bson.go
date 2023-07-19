@@ -472,6 +472,15 @@ type RegEx struct {
 	Options string
 }
 
+func (r *RegEx) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	data := make([]byte, 0, len(r.Pattern)+len(r.Options)+2)
+	data = append(data, r.Pattern...)
+	data = append(data, 0)
+	data = append(data, r.Options...)
+	data = append(data, 0)
+	return bsontype.Regex, data, nil
+}
+
 // JavaScript is a type that holds JavaScript code. If Scope is non-nil, it
 // will be marshaled as a mapping from identifiers to values that may be
 // used when evaluating the provided Code.

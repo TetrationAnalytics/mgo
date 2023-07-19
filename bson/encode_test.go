@@ -16,7 +16,8 @@ type PStruct struct {
 }
 
 type PStructPointer struct {
-	ID *primitive.ObjectID `bson:"_id,omitempty"`
+	ID    *primitive.ObjectID `bson:"_id,omitempty"`
+	Regex *primitive.Regex    `bson:"regex,omitempty"`
 }
 
 type BStruct struct {
@@ -24,7 +25,8 @@ type BStruct struct {
 }
 
 type BStructPointer struct {
-	ID *ObjectId `bson:"_id,omitempty"`
+	ID    *ObjectId `bson:"_id,omitempty"`
+	Regex *RegEx    `bson:"regex,omitempty"`
 }
 
 func TestMarshal_ObjectID(t *testing.T) {
@@ -53,6 +55,24 @@ func TestMarshal_ObjectID(t *testing.T) {
 		p := PStructPointer{ID: nil}
 		b := BStructPointer{ID: nil}
 		CheckMarshalAndUnmarshal(t, p, b)
+	})
+}
+
+func TestMarshal_Regex(t *testing.T) {
+	t.Run("pointer regex", func(t *testing.T) {
+		rp := primitive.Regex{Pattern: ".*", Options: "i"}
+		rb := RegEx{Pattern: ".*", Options: "i"}
+
+		p := PStructPointer{Regex: &rp}
+		b := BStructPointer{Regex: &rb}
+
+		CheckMarshal(t, p, b)
+	})
+
+	t.Run("nil regex", func(t *testing.T) {
+		p := PStructPointer{Regex: nil}
+		b := BStructPointer{Regex: nil}
+		CheckMarshal(t, p, b)
 	})
 }
 
@@ -256,10 +276,10 @@ func checkMarshal(t *testing.T, p, b interface{}, skipUnmarshal bool) {
 	checkRaw(t, pdataP, pdataB)
 	checkRaw(t, pdataB, pdataP)
 
-	t.Logf("%v", bdataP)
-	t.Logf("%v", bdataB)
-	t.Logf("%v", pdataP)
-	t.Logf("%v", pdataB)
+	t.Logf("p with b %v", bdataP)
+	t.Logf("b with b %v", bdataB)
+	t.Logf("p with p %v", pdataP)
+	t.Logf("b with p %v", pdataB)
 
 	// unmarshal
 	if skipUnmarshal {
@@ -302,7 +322,7 @@ func checkRaw(t *testing.T, d1, d2 []byte) {
 	if !bytes.Equal(d1, d2) {
 		t.Logf("%v", d1)
 		t.Logf("%v", d2)
-		t.Errorf("data not marshed to the same type")
+		t.Errorf("data not marshed to the same bytes")
 	}
 }
 

@@ -439,6 +439,11 @@ func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
 			e.addCStr(s.Pattern)
 			e.addCStr(s.Options)
 
+		case primitive.Regex:
+			e.addElemName(0x0B, name)
+			e.addCStr(s.Pattern)
+			e.addCStr(s.Options)
+
 		case JavaScript:
 			if s.Scope == nil {
 				e.addElemName(0x0D, name)
