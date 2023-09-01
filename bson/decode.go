@@ -667,7 +667,13 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 		switch inv.Kind() {
 		case reflect.String:
 			slice := []byte(inv.String())
-			out.Set(reflect.ValueOf(slice))
+			if outt == typePrimObjectId {
+				p := primitive.ObjectID{}
+				copy(p[:], slice)
+				out.Set(reflect.ValueOf(p))
+			} else {
+				out.Set(reflect.ValueOf(slice))
+			}
 			return true
 		case reflect.Slice:
 			switch outt.Kind() {
