@@ -39,13 +39,22 @@ func TestMarshal_ObjectID(t *testing.T) {
 		CheckMarshalAndUnmarshal(t, p, b)
 	})
 
-	// new driver will consider a pointer to zero value as empty
-	// old driver will take the pointer to zero as a 00000 id.
-	// t.Run("zero id", func(t *testing.T) {
+	t.Run("zero id", func(t *testing.T) {
+		p := PStruct{}
+		b := BStruct{}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
+
+	// this actually works but is hard to test.
+	// pointer to empty value will be empty
+	// t.Run("zero id pointer", func(t *testing.T) {
 	// 	id := primitive.ObjectID{}
 	// 	p := PStructPointer{ID: &id}
-	// 	i := ObjectIdHex(id.Hex())
+
+	// 	i := ObjectId("")
 	// 	b := BStructPointer{ID: &i}
+
 	// 	CheckMarshalAndUnmarshal(t, p, b)
 	// })
 

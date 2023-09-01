@@ -173,6 +173,11 @@ func isZero(v reflect.Value) bool {
 	switch v.Kind() {
 	case reflect.String:
 		return len(v.String()) == 0
+	case reflect.Array:
+		if v.Type() == typePrimObjectId {
+			return v.Interface().(primitive.ObjectID) == primitive.NilObjectID
+		}
+		panic(fmt.Sprintf("unknown type: %v", v.Type()))
 	case reflect.Ptr, reflect.Interface:
 		return v.IsNil()
 	case reflect.Slice:
@@ -202,6 +207,7 @@ func isZero(v reflect.Value) bool {
 		}
 		return true
 	}
+
 	return false
 }
 
