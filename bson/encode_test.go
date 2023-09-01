@@ -43,13 +43,21 @@ func TestMarshal_ObjectID(t *testing.T) {
 	// old driver will take the pointer to zero as a 00000 id.
 	// t.Run("zero id", func(t *testing.T) {
 	// 	id := primitive.ObjectID{}
-
 	// 	p := PStructPointer{ID: &id}
-
 	// 	i := ObjectIdHex(id.Hex())
 	// 	b := BStructPointer{ID: &i}
-	// 	checkMarshal(t, p, b, false)
+	// 	CheckMarshalAndUnmarshal(t, p, b)
 	// })
+
+	t.Run("not-zero pointer id", func(t *testing.T) {
+		id := primitive.NewObjectID()
+		p := PStructPointer{ID: &id}
+
+		i := ObjectIdHex(id.Hex())
+		b := BStructPointer{ID: &i}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
 
 	t.Run("nil id", func(t *testing.T) {
 		p := PStructPointer{ID: nil}
