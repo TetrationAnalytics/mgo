@@ -305,6 +305,12 @@ func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
 
 func (id *ObjectId) UnmarshalBSONValue(t bsontype.Type, raw []byte) error {
 	s := hex.EncodeToString(raw[:])
+
+	if raw == nil {
+		*id = ObjectId("")
+		return nil
+	}
+
 	if !IsObjectIdHex(s) {
 		return fmt.Errorf("invalid ObjectId: %s", raw)
 	}
