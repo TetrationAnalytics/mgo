@@ -73,6 +73,64 @@ func TestMarshal_ObjectID(t *testing.T) {
 		b := BStructPointer{ID: nil}
 		CheckMarshalAndUnmarshal(t, p, b)
 	})
+
+	t.Run("nil id into old non-pointer", func(t *testing.T) {
+		type Struct struct {
+			ID *primitive.ObjectID `bson:"_id"`
+		}
+
+		data, err := Marshal(Struct{ID: nil})
+		assert.NoError(t, err)
+
+		type Struct2 struct {
+			ID ObjectId `bson:"_id"`
+		}
+
+		// no error, sets as empty
+		{
+			// old driver
+			var s2 Struct2
+			err = Unmarshal(data, &s2)
+			assert.NoError(t, err)
+			assert.Equal(t, ObjectId(""), s2.ID)
+		}
+
+		{
+			// new driver
+			var s2 Struct2
+			err = bson.Unmarshal(data, &s2)
+			assert.NoError(t, err)
+			assert.Equal(t, ObjectId(""), s2.ID)
+		}
+	})
+
+	t.Run("nil id into new non-pointer", func(t *testing.T) {
+		type Struct struct {
+			ID *primitive.ObjectID `bson:"_id"`
+		}
+
+		data, err := Marshal(Struct{ID: nil})
+		assert.NoError(t, err)
+
+		type Struct2 struct {
+			ID primitive.ObjectID `bson:"_id"`
+		}
+
+		// should error for new type
+		{
+			// old driver
+			var s2 Struct2
+			err = Unmarshal(data, &s2)
+			assert.Error(t, err)
+		}
+
+		{
+			// new driver
+			var s2 Struct2
+			err = bson.Unmarshal(data, &s2)
+			assert.Error(t, err)
+		}
+	})
 }
 
 func TestMarshal_Regex(t *testing.T) {
