@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"go.mongodb.org/mongo-driver/bson"
@@ -149,6 +150,45 @@ func TestMarshal_Regex(t *testing.T) {
 		b := BStructPointer{Regex: nil}
 		CheckMarshal(t, p, b)
 	})
+}
+
+func TestMarshal_time(t *testing.T) {
+	now := time.Now().UTC()
+
+	dataB, err := Marshal(bson.M{"time": now})
+	if err != nil {
+		t.Fatalf("marshal bson error: %v", err)
+	}
+
+	dataP, err := bson.Marshal(primitive.M{"time": now})
+	if err != nil {
+		t.Fatalf("marshal bson error: %v", err)
+	}
+
+	if !bytes.Equal(dataB, dataP) {
+		t.Errorf("unequal bytes: %s %s", dataB, dataP)
+	}
+
+	// unmarshal
+	type Struct struct {
+		Time time.Time `bson:"time"`
+	}
+
+	b := Struct{}
+	err = Unmarshal(dataB, &b)
+	if err != nil {
+		t.Fatalf("unmarshal bson error: %v", err)
+	}
+
+	p := Struct{}
+	err = bson.Unmarshal(dataB, &p)
+	if err != nil {
+		t.Fatalf("unmarshal bson error: %v", err)
+	}
+
+	if !b.Time.UTC().Equal(p.Time.UTC()) {
+		t.Errorf("unequal time: %s %s", b.Time.UTC(), p.Time.UTC())
+	}
 }
 
 func TestMarshal_M(t *testing.T) {

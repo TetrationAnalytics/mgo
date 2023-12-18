@@ -62,6 +62,7 @@ func init() {
 	jsonExt.DecodeKeyed("$date", jdecDate)
 	jsonExt.DecodeKeyed("$dateFunc", jdecDate)
 	jsonExt.EncodeType(time.Time{}, jencDate)
+	jsonExt.EncodeType(primitive.DateTime(0), jencDate)
 
 	funcExt.DecodeFunc("Timestamp", "$timestamp", "t", "i")
 	jsonExt.DecodeKeyed("$timestamp", jdecTimestamp)
@@ -201,7 +202,10 @@ func jdecDate(data []byte) (interface{}, error) {
 }
 
 func jencDate(v interface{}) ([]byte, error) {
-	t := v.(time.Time)
+	t, ok := v.(time.Time)
+	if !ok {
+		t = v.(primitive.DateTime).Time()
+	}
 	return fbytes(`{"$date":%q}`, t.Format(jdateFormat)), nil
 }
 

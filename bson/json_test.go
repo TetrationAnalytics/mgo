@@ -38,6 +38,24 @@ func TestMarshalJSON_objectIDs(t *testing.T) {
 	}
 }
 
+func TestMarshalJSON_time(t *testing.T) {
+	t1 := time.Now()
+	t2 := primitive.NewDateTimeFromTime(t1)
+
+	// encode
+	data, err := bson.MarshalJSON(primitive.M{"t1": t1, "t2": t2})
+	if err != nil {
+		t.Fatalf("marshal json error: %v", err)
+	}
+
+	const jdateFormat = "2006-01-02T15:04:05.999Z"
+	expected := `{"t1":{"$date":"` + t1.Format(jdateFormat) + `"},` +
+		`"t2":{"$date":"` + t2.Time().Format(jdateFormat) + `"}}` + "\n"
+	if string(data) != expected {
+		t.Errorf("unequal bytes: got: %s expected: %s", data, expected)
+	}
+}
+
 type jsonTest struct {
 	a interface{} // value encoded into JSON (optional)
 	b string      // JSON expected as output of <a>, and used as input to <c>
