@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"gopkg.in/mgo.v2/internal/json"
 	"strconv"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"gopkg.in/mgo.v2/internal/json"
 )
 
 // UnmarshalJSON unmarshals a JSON value that may hold non-standard
@@ -74,6 +76,7 @@ func init() {
 	jsonExt.DecodeKeyed("$oid", jdecObjectId)
 	jsonExt.DecodeKeyed("$oidFunc", jdecObjectId)
 	jsonExt.EncodeType(ObjectId(""), jencObjectId)
+	jsonExt.EncodeType(primitive.ObjectID{}, jencObjectId)
 
 	funcExt.DecodeFunc("DBRef", "$dbrefFunc", "$ref", "$id")
 	jsonExt.DecodeKeyed("$dbrefFunc", jdecDBRef)
@@ -259,8 +262,12 @@ func jdecObjectId(data []byte) (interface{}, error) {
 	return ObjectIdHex(v.Id), nil
 }
 
+type hexer interface {
+	Hex() string
+}
+
 func jencObjectId(v interface{}) ([]byte, error) {
-	return fbytes(`{"$oid":"%s"}`, v.(ObjectId).Hex()), nil
+	return fbytes(`{"$oid":"%s"}`, v.(hexer).Hex()), nil
 }
 
 func jdecDBRef(data []byte) (interface{}, error) {
