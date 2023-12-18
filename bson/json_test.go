@@ -1,13 +1,42 @@
 package bson_test
 
 import (
+	"bytes"
+	"reflect"
+	"strings"
+	"testing"
+	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"gopkg.in/mgo.v2/bson"
 
 	. "gopkg.in/check.v1"
-	"reflect"
-	"strings"
-	"time"
 )
+
+func TestMarshalJSON_objectIDs(t *testing.T) {
+	id1 := bson.NewObjectId()
+	id2 := primitive.NewObjectID()
+
+	// encode
+	dataB, err := bson.MarshalJSON(bson.M{"id1": id1, "id2": id2})
+	if err != nil {
+		t.Fatalf("marshal json error: %v", err)
+	}
+
+	dataP, err := bson.MarshalJSON(primitive.M{"id1": id1, "id2": id2})
+	if err != nil {
+		t.Fatalf("marshal json error: %v", err)
+	}
+
+	if !bytes.Equal(dataB, dataP) {
+		t.Errorf("unequal bytes: %s %s", dataB, dataP)
+	}
+
+	expected := `{"id1":{"$oid":"` + id1.Hex() + `"},"id2":{"$oid":"` + id2.Hex() + `"}}` + "\n"
+	if string(dataB) != expected {
+		t.Errorf("unequal bytes: got: %s expected: %s", dataB, expected)
+	}
+}
 
 type jsonTest struct {
 	a interface{} // value encoded into JSON (optional)
