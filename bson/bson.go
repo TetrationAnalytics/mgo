@@ -436,6 +436,21 @@ func Now() time.Time {
 // strange reason has its own datatype defined in BSON.
 type MongoTimestamp int64
 
+// UnmarshalBSONValue is used by the new driver to set this type/value.
+func (mt *MongoTimestamp) UnmarshalBSONValue(t bsontype.Type, raw []byte) error {
+	if t != bsontype.Timestamp {
+		return fmt.Errorf("BSON type is not a timestamp: %v", t)
+	}
+	*mt = MongoTimestamp(int64(binary.LittleEndian.Uint64(raw)))
+	return nil
+}
+
+func (mt MongoTimestamp) MarshalBSONValue() (bsontype.Type, []byte, error) {
+	v := make([]byte, 8)
+	binary.LittleEndian.PutUint64(v, uint64(mt))
+	return bsontype.Timestamp, v, nil
+}
+
 type orderKey int64
 
 // MaxKey is a special value that compares higher than all other possible BSON
