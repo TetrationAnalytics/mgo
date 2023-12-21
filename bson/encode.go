@@ -49,6 +49,7 @@ var (
 	typeDBPointer      = reflect.TypeOf(DBPointer{"", ObjectId("")})
 	typeSymbol         = reflect.TypeOf(Symbol(""))
 	typeMongoTimestamp = reflect.TypeOf(MongoTimestamp(0))
+	typePrimTimestamp  = reflect.TypeOf(primitive.Timestamp{})
 	typeOrderKey       = reflect.TypeOf(MinKey)
 	typeDocElem        = reflect.TypeOf(DocElem{})
 	typePrimDoc        = reflect.TypeOf(primitive.D{})
@@ -449,6 +450,14 @@ func (e *encoder) addElem(name string, v reflect.Value, minSize bool) {
 			e.addElemName(0x0B, name)
 			e.addCStr(s.Pattern)
 			e.addCStr(s.Options)
+
+		case primitive.Timestamp:
+			e.addElemName(0x11, name)
+
+			var v int64
+			v |= int64(s.T) << 32
+			v |= int64(s.I)
+			e.addInt64(v)
 
 		case JavaScript:
 			if s.Scope == nil {

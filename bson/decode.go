@@ -761,6 +761,20 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 			out.Set(reflect.ValueOf(u).Elem())
 			return true
 		}
+
+		if outt == typePrimTimestamp {
+			if t, ok := in.(MongoTimestamp); ok {
+				ti := uint64(t)
+				out.Set(
+					reflect.ValueOf(
+						primitive.Timestamp{T: uint32(ti >> 32), I: uint32(ti & ((1 << 32) - 1))},
+					),
+				)
+
+				return true
+			}
+		}
+
 		if outt == typeBinary {
 			if b, ok := in.([]byte); ok {
 				out.Set(reflect.ValueOf(Binary{Data: b}))

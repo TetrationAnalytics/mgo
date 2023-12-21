@@ -191,6 +191,77 @@ func TestMarshal_time(t *testing.T) {
 	}
 }
 
+func TestMarshal_Timestamp(t *testing.T) {
+	nano := time.Now().Unix()
+
+	// first 4 bytes (T) is timestamp
+	// second 4 bytes (I) is increment
+
+	t.Run("non-pointer", func(t *testing.T) {
+		type PStruct struct {
+			Time primitive.Timestamp `bson:"time"`
+		}
+
+		type BStruct struct {
+			Time MongoTimestamp `bson:"time"`
+		}
+
+		p := PStruct{Time: primitive.Timestamp{T: uint32(nano), I: 123}}
+		b := BStruct{Time: MongoTimestamp((nano << 32) + 123)}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
+
+	t.Run("pointer", func(t *testing.T) {
+		type PStruct struct {
+			Time *primitive.Timestamp `bson:"time"`
+		}
+
+		type BStruct struct {
+			Time *MongoTimestamp `bson:"time"`
+		}
+
+		p := PStruct{Time: &primitive.Timestamp{T: uint32(nano), I: 123}}
+
+		ts := MongoTimestamp((nano << 32) + 123)
+		b := BStruct{Time: &ts}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
+
+	t.Run("pointer omitempty", func(t *testing.T) {
+		type PStruct struct {
+			Time *primitive.Timestamp `bson:"time,omitempty"`
+		}
+
+		type BStruct struct {
+			Time *MongoTimestamp `bson:"time,omitempty"`
+		}
+
+		p := PStruct{Time: &primitive.Timestamp{T: uint32(nano), I: 123}}
+
+		ts := MongoTimestamp((nano << 32) + 123)
+		b := BStruct{Time: &ts}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
+
+	t.Run("pointer omitempty nil", func(t *testing.T) {
+		type PStruct struct {
+			Time *primitive.Timestamp `bson:"time,omitempty"`
+		}
+
+		type BStruct struct {
+			Time *MongoTimestamp `bson:"time,omitempty"`
+		}
+
+		p := PStruct{}
+		b := BStruct{}
+
+		CheckMarshalAndUnmarshal(t, p, b)
+	})
+}
+
 func TestMarshal_M(t *testing.T) {
 	t.Run("basic key value", func(t *testing.T) {
 		p := primitive.M{"name": "abc"}
