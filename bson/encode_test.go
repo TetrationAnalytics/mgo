@@ -120,13 +120,19 @@ func TestMarshal_ObjectID(t *testing.T) {
 		// should error for new type
 		{
 			// old driver
-			var s2 Struct2
+			s2 := Struct2{
+				ID: primitive.NewObjectID(),
+			}
 			err = Unmarshal(data, &s2)
-			assert.Error(t, err)
+			assert.NoError(t, err)
+
+			assert.Equal(t, primitive.NilObjectID, s2.ID)
 		}
 
 		{
 			// new driver
+			// NOTE: nulls can not be unmarshaled into non-pointer types
+			// with the new driver, this could become a problem for us.
 			var s2 Struct2
 			err = bson.Unmarshal(data, &s2)
 			assert.Error(t, err)

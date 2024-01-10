@@ -575,8 +575,12 @@ func (d *decoder) readElemTo(out reflect.Value, kind byte) (good bool) {
 	}
 
 	if outt == typePrimObjectId {
-		inv := reflect.ValueOf(in)
-		reflect.Copy(out, inv)
+		if in == nil {
+			out.SetZero()
+		} else {
+			inv := reflect.ValueOf(in)
+			reflect.Copy(out, inv)
+		}
 		return true
 	}
 
