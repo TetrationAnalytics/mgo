@@ -138,6 +138,28 @@ func TestMarshal_ObjectID(t *testing.T) {
 			assert.Error(t, err)
 		}
 	})
+
+	t.Run("string in database should decode to old ObjectId", func(t *testing.T) {
+		id := primitive.NewObjectID()
+
+		// insert the string into the database
+		data := map[string]interface{}{
+			"data": id.Hex(),
+		}
+		bdata, err := Marshal(data)
+		assert.NoError(t, err)
+
+		// fetch it as an ObjectId in a struct
+		type Struct struct {
+			Data ObjectId `bson:"data"`
+		}
+
+		s := Struct{}
+		err = bson.Unmarshal(bdata, &s)
+		assert.NoError(t, err)
+
+		assert.Equal(t, id.Hex(), s.Data.Hex())
+	})
 }
 
 func TestMarshal_Regex(t *testing.T) {
