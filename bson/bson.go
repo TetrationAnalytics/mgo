@@ -304,6 +304,15 @@ func (id ObjectId) MarshalBSONValue() (bsontype.Type, []byte, error) {
 }
 
 func (id *ObjectId) UnmarshalBSONValue(t bsontype.Type, raw []byte) error {
+	// supports string type in database to be decoded into bson.ObjectId
+	if len(raw) > 28 {
+		str := string(raw[4:28])
+		if IsObjectIdHex(str) {
+			*id = ObjectIdHex(str)
+			return nil
+		}
+	}
+
 	s := hex.EncodeToString(raw[:])
 
 	if raw == nil {
